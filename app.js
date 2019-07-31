@@ -1,10 +1,23 @@
-let express = require("express")
+let express = require('express')
+let http = require('http')
 let app = express()
+let server = http.createServer(app)
+let io = require('socket.io').listen(server);
 
-app.get('/', (req, res)=>{
-    res.send("Hello, World")
-})
+app.use(express.static(__dirname))
 
-app.listen(process.env.PORT, ()=>{
-    console.log("Server listening")
+server.listen(process.env.PORT);
+
+app.get('/', (req, res)=> {
+    res.sendFile(__dirname + '/views/index.html');
+});
+
+io.sockets.on('connection', (socket)=>{
+    socket.on('message', (data)=>{
+        io.sockets.emit("message",
+        {
+            msg: data.message,
+            name: data.name
+        })
+    })
 })
