@@ -1,59 +1,39 @@
+var port = process.env.PORT || 3000,
+    http = require('http'),
+    fs = require('fs'),
+    html = fs.readFileSync('index.html');
 
-/**
- * Module dependencies.
- */
+var log = function(entry) {
+    fs.appendFileSync('/tmp/sample-app.log', new Date().toISOString() + ' - ' + entry + '\n');
+};
 
-// Client
-  // Server
-  var log = console.log;
+var server = http.createServer(function (req, res) {
+    if (req.method === 'POST') {
+        var body = '';
 
-var express = require('express');
+        req.on('data', function(chunk) {
+            body += chunk;
+        });
 
-var app = module.exports = express.createServer();
+        req.on('end', function() {
+            if (req.url === '/') {
+                log('Received message: ' + body);
+            } else if (req.url = '/scheduled') {
+                log('Received task ' + req.headers['x-aws-sqsd-taskname'] + ' scheduled at ' + req.headers['x-aws-sqsd-scheduled-at']);
+            }
 
-// Configuration
-
-app.configure(function(){
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'ejs');
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(express.cookieParser());
-  app.use(express.session({ secret: 'your secret here' }));
-  app.use(app.router);
-  app.use(express.static(__dirname + '/public'));
+            res.writeHead(200, 'OK', {'Content-Type': 'text/plain'});
+            res.end();
+        });
+    } else {
+        res.writeHead(200);
+        res.write(html);
+        res.end();
+    }
 });
 
-app.configure('development', function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
-});
+// Listen on port 3000, IP defaults to 127.0.0.1
+server.listen(port);
 
-app.configure('production', function(){
-  app.use(express.errorHandler()); 
-});
-
-// Routes
-
-app.get('/', function(req, res){
-  res.render('index', {
-    title: 'Express'
-  });
-});
-
-app.listen(3000);
-console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
-
-var io = require('socket.io').listen(app);
-
-
-io.sockets.on('connection', function (socket) { // 2
-  log('connected');
-  socket.on('msg send', function (msg) { // 4
-    socket.emit('msg push', msg); // 5
-    socket.broadcast.emit('msg push', msg); // 6
-  });
-  socket.on('disconnect', function() { // 9
-    log('disconnected');
-  });
-});
-
+// Put a friendly message on the terminal
+console.log('Server running at http://127.0.0.1:' + port + '/');
