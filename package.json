@@ -11,11 +11,11 @@
   "license": "cchan",
   "devDependencies": {
     "express": "^4.16.2",
-    "socket.io": "^2.0.4"
+    "socket.io": "^2.4.0"
   },
   "dependencies": {
     "express": "^4.16.3",
     "sass": "^1.22.9",
-    "socket.io": "^2.0.4"
+    "socket.io": "^2.4.0"
   }
 }
